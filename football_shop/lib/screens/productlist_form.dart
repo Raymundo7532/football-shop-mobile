@@ -125,6 +125,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     if (int.tryParse(value) == null) {
                       return "Harga Produk harus berupa angka!";
                     }
+                    if (int.parse(value) < 0) {
+                      return "Harga Produk tidak boleh negatif!";
+                    }
                     return null;
                   },
                 ),
