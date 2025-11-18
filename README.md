@@ -1,6 +1,57 @@
 Nama: Raymundo Rafaelito Maryos Von Woloblo
 Kelas: PBP B
 
+# Tugas 9
+##### 1. Alasan Perlunya Membuat Model Dart Saat Mengambil/Mengirim Data JSON
+
+Membuat model Dart itu penting karena data dari backend selalu datang dalam bentuk JSON yang strukturnya bisa berubah-ubah. Dengan model, kita bisa memastikan setiap field punya tipe data yang jelas dan aman secara null-safety. Kalau kita langsung pakai Map<String, dynamic>, kita bakal repot validasi sendiri, rawan salah akses key, dan susah ngelacak error kalau backend berubah sedikit saja. Model juga bikin kode lebih rapi dan maintainable karena semua aturan struktur data terpusat di satu tempat. Akhirnya, development jangka panjang jadi lebih stabil dan mudah di-debug.
+
+Tanpa model, aplikasi bisa gampang crash kalau tipe datanya tidak sesuai ekspektasi atau ada nilai null yang tidak ditangani. Selain itu, kode yang pakai map mentah cenderung berantakan dan sulit dikembangkan karena tidak ada jaminan tipe data sama di seluruh aplikasi. Intinya: model bukan cuma soal “nyaman,” tapi soal menjaga keamanan data, konsistensi, dan maintainability aplikasi.
+
+##### 2. Fungsi Package http dan CookieRequest serta Perbedaan Perannya
+
+Dalam tugas ini, package http dipakai untuk melakukan request standar seperti GET atau POST tanpa perlu mengurus sesi atau cookie. Ini cocok dipakai untuk endpoint publik atau request yang tidak butuh autentikasi. Sementara CookieRequest dipakai untuk semua request yang perlu session login Django, karena dia otomatis menyimpan dan mengirim cookie supaya backend mengenali user yang sedang login.
+
+Singkatnya, http adalah alat request umum, sedangkan CookieRequest adalah alat request “berbasis sesi” yang nge-handle autentikasi. Jadi kalau butuh akses data user yang login, atau perlu menjaga session tetap aktif, maka CookieRequest adalah pilihan yang tepat.
+
+##### 3. Alasan Instance CookieRequest Perlu Dibagikan ke Semua Komponen
+
+Karena autentikasi di Django menggunakan sesi (session cookie), instance CookieRequest harus dibagikan ke seluruh komponen Flutter supaya setiap request yang butuh login bisa tetap mengirim cookie yang sama. Kalau setiap halaman membuat instance baru, cookie tidak akan terbawa, dan backend bakal menganggap user belum login. Akibatnya, fitur seperti mengambil data milik user atau membuat produk baru tidak akan bekerja.
+
+Dengan membagikan satu instance ke seluruh widget tree (biasanya lewat Provider), aplikasi punya satu sumber kebenaran untuk status login, cookie, dan informasi user. Ini bikin state autentikasi lebih konsisten, tidak mudah hilang, dan lebih mudah dikelola di seluruh bagian aplikasi.
+
+##### 4. Konfigurasi Konektivitas Flutter ↔ Django dan Konsekuensi Jika Salah Konfigurasi
+
+Agar Flutter bisa berkomunikasi dengan Django, ada beberapa konfigurasi penting yang harus dibereskan. Penambahan 10.0.2.2 pada ALLOWED_HOSTS memungkinkan emulator Android mengakses server Django yang berjalan di localhost. CORS perlu diaktifkan supaya Flutter diizinkan untuk melakukan request lintas domain. Selain itu, konfigurasi cookie seperti SameSite dan Secure harus disesuaikan agar session cookie bisa dikirim dan diterima dengan benar oleh Flutter.
+
+Jika izin akses internet di Android tidak ditambahkan, aplikasi tidak akan bisa melakukan request sama sekali. Jika ALLOWED_HOSTS salah, request akan ditolak dengan error 400. Jika CORS atau cookie tidak dikonfigurasi, autentikasi gagal karena cookie tidak pernah sampai ke Django atau tidak diterima kembali oleh Flutter. Intinya: salah satu konfigurasi saja rusak, komunikasi Flutter↔Django bisa langsung gagal total.
+
+##### 5. Mekanisme Pengiriman Data dari Input Hingga Ditampilkan di Flutter
+
+Prosesnya dimulai ketika user mengisi form di Flutter dan data tersebut dikumpulkan dari input widget. Data yang sudah dirangkum kemudian dikirim ke backend Django melalui POST request (pakai http atau CookieRequest tergantung kebutuhan). Django lalu memproses data tersebut, menyimpannya ke database, dan mengembalikan respons JSON berisi hasil atau statusnya.
+
+Setelah JSON diterima Flutter, data tersebut di-decode lalu dipetakan ke model Dart. Model inilah yang kemudian digunakan untuk menampilkan data di UI, misalnya ditaruh dalam ListView atau Card. Alur ini bikin data terasa “mengalir” secara natural dari input user → server → database → balik lagi ke UI.
+
+##### 6. Mekanisme Autentikasi Login, Register, dan Logout
+
+Untuk login dan register, Flutter mengirim data akun (username, password, dll.) ke Django lewat CookieRequest. Django akan memvalidasi data tersebut menggunakan mekanisme autentikasi bawaannya. Jika login berhasil, Django mengembalikan session cookie, yang langsung disimpan oleh CookieRequest. Cookie ini akan dikirim pada setiap request berikutnya supaya backend tahu siapa user yang sedang aktif.
+
+Setelah sukses login atau register, Flutter biasanya akan menampilkan halaman menu utama karena status login sudah disimpan di instance CookieRequest. Untuk logout, Flutter memanggil endpoint Django yang menghapus session di server, lalu CookieRequest juga menghapus cookie lokal. Hasilnya, user otomatis dianggap keluar dan kembali ke halaman login. Mekanisme ini memastikan seluruh interaksi yang butuh autentikasi berjalan aman dan konsisten.
+
+##### 7. Cara ku mengimplementasikan checklist di tugas 9 secara step-by-step:
+- Memastikan deployment proyek tugas Django ku telah berjalan dengan baik.
+- Mengimplementasikan fitur registrasi akun pada proyek tugas Flutter.
+- Membuat halaman login pada proyek tugas Flutter.
+- Mengintegrasikan sistem autentikasi Django dengan proyek tugas Flutter.
+- Membuat model kustom sesuai dengan proyek aplikasi Django.
+- Membuat halaman yang berisi daftar semua item yang terdapat pada endpoint JSON di Django yang telah ku deploy.
+  - Tampilkan name, price, description, thumbnail, category, dan is_featured dari masing-masing item pada halaman ini (Dapat disesuaikan dengan field yang kalian buat sebelumnya).
+- Membuat halaman detail untuk setiap item yang terdapat pada halaman daftar Item.
+  - Halaman ini dapat diakses dengan menekan salah satu card item pada halaman daftar Item.
+  - Tampilkan seluruh atribut pada model item ku pada halaman ini.
+  - Tambahkan tombol untuk kembali ke halaman daftar item.
+- Melakukan filter pada halaman daftar item dengan hanya menampilkan item yang terasosiasi dengan pengguna yang login.
+
 # Tugas 8
 ##### 1. Perbedaan `Navigator.push()` dan `Navigator.pushReplacement()` serta kasus terbaik untuk digunakan pada apliksi ini
 
